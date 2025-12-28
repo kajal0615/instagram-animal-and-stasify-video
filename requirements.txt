@@ -1,5 +1,5 @@
 google-api-python-client
 google-auth-oauthlib
-instagrapi
+git+https://github.com/subzeroid/instagrapi.git
 pillow
 moviepy
