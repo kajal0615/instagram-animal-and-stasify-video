@@ -1,0 +1,45 @@
+name: Instagram Bot Test Run
+
+on:
+  push:       # <-- Ye line abhi ke abhi run karegi save karte hi
+  workflow_dispatch: # Button option bhi rahega
+  schedule:
+    - cron: '30 4,13 * * *' # Baad mein time par chalega
+
+jobs:
+  post-reel:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # History save karne ke liye zaroori hai
+      
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Python Setup
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Libraries
+        run: pip install -r requirements.txt
+
+      - name: Run Bot Script
+        env:
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+          DRIVE_SATISFY_ID: ${{ secrets.DRIVE_SATISFY_ID }}
+          DRIVE_FUNNY_ID: ${{ secrets.DRIVE_FUNNY_ID }}
+          INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
+          INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
+          INSTA_SESSION: ${{ secrets.INSTA_SESSION }}
+        run: python insta_bot.py
+
+      - name: Save Upload History
+        run: |
+          git config --global user.name "InstaBot"
+          git config --global user.email "bot@github.com"
+          git add history.txt
+          git commit -m "Video uploaded & history updated" || echo "No changes"
+          git push
