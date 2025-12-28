@@ -1,10 +1,10 @@
-name: Instagram Bot Test Run
+name: Instagram Bot Scheduler
 
 on:
-  push:       # <-- Ye line abhi ke abhi run karegi save karte hi
-  workflow_dispatch: # Button option bhi rahega
   schedule:
-    - cron: '30 4,13 * * *' # Baad mein time par chalega
+    # UTC Times: 4:30 (10 AM IST), 9:30 (3 PM IST), 15:30 (9 PM IST)
+    - cron: '30 4,9,15 * * *'
+  workflow_dispatch: # Button option
 
 jobs:
   post-reel:
@@ -22,6 +22,7 @@ jobs:
           python-version: '3.10'
 
       - name: Install Libraries
+        # Developer version zaroori hai error fix ke liye
         run: pip install -r requirements.txt
 
       - name: Run Bot Script
@@ -40,6 +41,7 @@ jobs:
         run: |
           git config --global user.name "InstaBot"
           git config --global user.email "bot@github.com"
+          git pull
           git add history.txt
           git commit -m "Video uploaded & history updated" || echo "No changes"
           git push
