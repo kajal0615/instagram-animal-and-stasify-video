@@ -43,7 +43,7 @@ jobs:
           # --- DRIVE FOLDERS ---
           DRIVE_SATISFY_ID: ${{ secrets.DRIVE_SATISFY_ID }}
           # Yahan dhyan dena: Ye secrets GitHub mein hone chahiye!
-          DRIVE_FUNNY_ID: ${{ secrets.DRIVE_FUNNY_ID }}
+
           DRIVE_DONE_ID: ${{ secrets.DRIVE_DONE_ID }}
           
           # --- INSTAGRAM ---
