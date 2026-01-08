@@ -2,8 +2,7 @@ name: Multi-Niche Bot Auto Uploader
 
 on:
   schedule:
-    # --- 4 Baar Post Karne Ka Schedule (UTC Time) ---
-    # India Time (IST) ke hisaab se:
+    # India Time (IST) Schedule:
     - cron: '30 3 * * *'   # 9:00 AM IST
     - cron: '30 7 * * *'   # 1:00 PM IST
     - cron: '30 11 * * *'  # 5:00 PM IST
@@ -24,18 +23,14 @@ jobs:
         with:
           python-version: '3.10'
 
-      # IMPORTANT: Ye step Video Editing ke liye zaroori hai
       - name: Install FFmpeg
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
 
-      - name: Install Libraries (Direct Mode)
+      - name: Install Libraries
         run: |
-          # Pehle pip update karte hain
           python -m pip install --upgrade pip setuptools wheel
-          
-          # Direct install taaki version conflict na ho (Stable List)
           pip install google-api-python-client google-auth-oauthlib google-auth-httplib2 requests moviepy==1.0.3 "numpy<2.0.0" instagrapi==1.17.0
 
       - name: Run Script
@@ -47,12 +42,14 @@ jobs:
           
           # --- DRIVE FOLDERS ---
           DRIVE_SATISFY_ID: ${{ secrets.DRIVE_SATISFY_ID }}
+          # Yahan dhyan dena: Ye secrets GitHub mein hone chahiye!
           DRIVE_FUNNY_ID: ${{ secrets.DRIVE_FUNNY_ID }}
-          DRIVE_DONE_ID: ${{ secrets.DRIVE_DONE_ID }}  # <-- Naya Secret (Posted Videos Folder)
+          DRIVE_DONE_ID: ${{ secrets.DRIVE_DONE_ID }}
           
           # --- INSTAGRAM ---
           INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
           INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
-          INSTA_SETTINGS: ${{ secrets.INSTA_SETTINGS }} # Session JSON
+          # Maine yahan fix kiya hai taaki tumhare secret 'INSTA_SESSION' se match kare
+          INSTA_SETTINGS: ${{ secrets.INSTA_SESSION }}
         
         run: python main.py
