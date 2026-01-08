@@ -1,47 +1,58 @@
-name: Instagram Bot Scheduler
+name: Multi-Niche Bot Auto Uploader
 
 on:
   schedule:
-    # UTC Times: 4:30 (10 AM IST), 9:30 (3 PM IST), 15:30 (9 PM IST)
-    - cron: '30 4,9,15 * * *'
-  workflow_dispatch: # Button option
+    # --- 4 Baar Post Karne Ka Schedule (UTC Time) ---
+    # India Time (IST) ke hisaab se:
+    - cron: '30 3 * * *'   # 9:00 AM IST
+    - cron: '30 7 * * *'   # 1:00 PM IST
+    - cron: '30 11 * * *'  # 5:00 PM IST
+    - cron: '30 15 * * *'  # 9:00 PM IST
+  
+  workflow_dispatch:      # Manual 'Run' button
 
 jobs:
-  post-reel:
+  run-bot:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # History save karne ke liye zaroori hai
-      
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Python Setup
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Libraries
-        # Developer version zaroori hai error fix ke liye
-        run: pip install -r requirements.txt
+      # IMPORTANT: Ye step Video Editing ke liye zaroori hai
+      - name: Install FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
-      - name: Run Bot Script
+      - name: Install Libraries (Direct Mode)
+        run: |
+          # Pehle pip update karte hain
+          python -m pip install --upgrade pip setuptools wheel
+          
+          # Direct install taaki version conflict na ho (Stable List)
+          pip install google-api-python-client google-auth-oauthlib google-auth-httplib2 requests moviepy==1.0.3 "numpy<2.0.0" instagrapi==1.17.0
+
+      - name: Run Script
         env:
+          # --- GOOGLE AUTH ---
           CLIENT_ID: ${{ secrets.CLIENT_ID }}
           CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
           REFRESH_TOKEN: ${{ secrets.REFRESH_TOKEN }}
+          
+          # --- DRIVE FOLDERS ---
           DRIVE_SATISFY_ID: ${{ secrets.DRIVE_SATISFY_ID }}
           DRIVE_FUNNY_ID: ${{ secrets.DRIVE_FUNNY_ID }}
+          DRIVE_DONE_ID: ${{ secrets.DRIVE_DONE_ID }}  # <-- Naya Secret (Posted Videos Folder)
+          
+          # --- INSTAGRAM ---
           INSTA_USERNAME: ${{ secrets.INSTA_USERNAME }}
           INSTA_PASSWORD: ${{ secrets.INSTA_PASSWORD }}
-          INSTA_SESSION: ${{ secrets.INSTA_SESSION }}
-        run: python insta_bot.py
-
-      - name: Save Upload History
-        run: |
-          git config --global user.name "InstaBot"
-          git config --global user.email "bot@github.com"
-          git pull
-          git add history.txt
-          git commit -m "Video uploaded & history updated" || echo "No changes"
-          git push
+          INSTA_SETTINGS: ${{ secrets.INSTA_SETTINGS }} # Session JSON
+        
+        run: python main.py
