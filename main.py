@@ -18,13 +18,12 @@ REFRESH_TOKEN = os.environ["REFRESH_TOKEN"]
 
 # Folders
 SATISFY_FOLDER_ID = os.environ["DRIVE_SATISFY_ID"]
-FUNNY_FOLDER_ID = os.environ["DRIVE_FUNNY_ID"]
-DONE_FOLDER_ID = os.environ["DRIVE_DONE_ID"] # <-- New Secret needed
+DONE_FOLDER_ID = os.environ["DRIVE_DONE_ID"]  # <-- Ye zaroori hai move karne ke liye
 
 # Instagram
 INSTA_USER = os.environ["INSTA_USERNAME"]
 INSTA_PASS = os.environ["INSTA_PASSWORD"]
-INSTA_SESSION = os.environ.get("INSTA_SETTINGS") # Naam check kar lena secrets me
+INSTA_SESSION = os.environ.get("INSTA_SETTINGS")
 
 # --- 2. SETUP SERVICES ---
 def get_google_services():
@@ -65,36 +64,26 @@ def edit_video(raw_path, final_path):
     )
     print("✅ Editing Complete!")
 
-# --- 4. METADATA GENERATOR (Funny vs Satisfying) ---
-def get_metadata(category):
-    if category == "SATISFY":
-        titles = [
-            "Oddly Satisfying Video 🤤 #Shorts", 
-            "Deeply Relaxing Visuals ✨ #ASMR", 
-            "The Most Satisfying Thing Ever 🧊", 
-            "Brain Massage: Visual ASMR 🧠"
-        ]
-        tags = ["satisfying", "oddlysatisfying", "asmr", "relaxing", "stress relief", "slime", "shorts"]
-        cat_id = '24' # Entertainment
-        
-        insta_tags = "#satisfying #oddlysatisfying #asmr #relaxing #stressrelief #calming #visualasmr #slime #viralreels"
-        
-    else: # FUNNY
-        titles = [
-            "Wait for it... 😂 #Shorts", 
-            "Too Cute! Funny Animals 🐶", 
-            "Instant Mood Boost 🤣 #Funny", 
-            "Try Not To Laugh Challenge 😆"
-        ]
-        tags = ["funny", "animals", "cute", "fails", "comedy", "shorts", "pets"]
-        cat_id = '23' # Comedy
-        
-        insta_tags = "#funnyanimals #dogreels #catreels #petfails #funnyvideos #cute #viral #trending #shorts #comedy"
-
+# --- 4. METADATA GENERATOR (Only Satisfying) ---
+def get_metadata():
+    titles = [
+        "Oddly Satisfying Video 🤤 #Shorts", 
+        "Deeply Relaxing Visuals ✨ #ASMR", 
+        "The Most Satisfying Thing Ever 🧊", 
+        "Brain Massage: Visual ASMR 🧠",
+        "Can You Watch This Without Tingles? 😴",
+        "Ultimate Stress Relief 💆‍♂️ #Satisfying"
+    ]
+    
+    tags = ["satisfying", "oddlysatisfying", "asmr", "relaxing", "stress relief", "slime", "shorts", "visualasmr"]
+    cat_id = '24' # Entertainment
+    
+    insta_tags = "#satisfying #oddlysatisfying #asmr #relaxing #stressrelief #calming #visualasmr #slime #viralreels"
+    
     selected_title = random.choice(titles)
     
     # Description for YouTube
-    desc = f"{selected_title}\n\nSubscribe for daily content! 🚀\n\n#shorts #{tags[0]} #{tags[1]}"
+    desc = f"{selected_title}\n\nSubscribe for daily relaxation! 🚀\n\n#shorts #{tags[0]} #{tags[1]}"
     
     # Caption for Instagram
     insta_caption = f"{selected_title.split('#')[0].strip()}\n.\nFollow @{INSTA_USER} for more! ❤️\n.\n{insta_tags}"
@@ -103,7 +92,7 @@ def get_metadata(category):
 
 # --- 5. MAIN BOT ---
 def main():
-    print("--- 🚀 Multi-Niche Bot Started ---")
+    print("--- 🚀 Satisfying Bot Started ---")
     
     try:
         drive, youtube = get_google_services()
@@ -111,29 +100,28 @@ def main():
         print(f"❌ Login Error: {e}")
         return
 
-    # 1. Fetch Videos from Both Folders
-    print("Scanning Drive Folders...")
+    # 1. Fetch Videos from Satisfy Folder Only
+    print("Scanning Drive Folder...")
     all_videos = []
 
-    # Get Satisfying Videos
-    res_sat = drive.files().list(q=f"'{SATISFY_FOLDER_ID}' in parents and mimeType contains 'video/' and trashed=false", fields="files(id, name)").execute()
-    for v in res_sat.get('files', []): 
-        v['category'] = "SATISFY"
-        all_videos.append(v)
-
-    # Get Funny Videos
-    res_fun = drive.files().list(q=f"'{FUNNY_FOLDER_ID}' in parents and mimeType contains 'video/' and trashed=false", fields="files(id, name)").execute()
-    for v in res_fun.get('files', []): 
-        v['category'] = "FUNNY"
-        all_videos.append(v)
+    try:
+        res_sat = drive.files().list(
+            q=f"'{SATISFY_FOLDER_ID}' in parents and mimeType contains 'video/' and trashed=false", 
+            fields="files(id, name)"
+        ).execute()
+        
+        all_videos = res_sat.get('files', [])
+    except Exception as e:
+        print(f"❌ Error Reading Folder: {e}")
+        return
     
     if not all_videos:
-        print("❌ No videos found in any folder.")
+        print("❌ No videos found in Satisfy Folder.")
         return
 
     # 2. Random Selection
     video = random.choice(all_videos)
-    print(f"🎥 Selected: {video['name']} (Type: {video['category']})")
+    print(f"🎥 Selected: {video['name']}")
 
     # 3. Download
     raw_path = "raw_video.mp4"
@@ -147,7 +135,7 @@ def main():
         while done is False:
             status, done = downloader.next_chunk()
 
-    # 4. Edit Video (NEW STEP)
+    # 4. Edit Video
     try:
         edit_video(raw_path, final_path)
         upload_file = final_path
@@ -155,10 +143,10 @@ def main():
         print(f"⚠️ Editing Failed: {e}. Uploading Raw Video.")
         upload_file = raw_path
 
-    # Get Titles & Tags based on Category
-    yt_title, yt_desc, yt_tags, yt_cat, insta_caption = get_metadata(video['category'])
+    # Get Metadata
+    yt_title, yt_desc, yt_tags, yt_cat, insta_caption = get_metadata()
 
-    # 5. YouTube Upload (NEW STEP)
+    # 5. YouTube Upload
     try:
         print(f"🎥 YouTube Uploading: {yt_title}")
         body = {
@@ -197,7 +185,7 @@ def main():
     # 7. Cleanup (Move to DONE Folder)
     print("🧹 Cleaning up...")
     try:
-        # Pata karo file ka parent kaun hai (Satisfy wala ya Funny wala)
+        # Pata karo file ka parent kaun hai
         file_info = drive.files().get(fileId=video['id'], fields='parents').execute()
         prev_parents = ",".join(file_info.get('parents'))
 
