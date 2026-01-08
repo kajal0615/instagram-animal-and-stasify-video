@@ -1,5 +1,7 @@
 google-api-python-client
 google-auth-oauthlib
-git+https://github.com/subzeroid/instagrapi.git
-pillow
-moviepy
+google-auth-httplib2
+requests
+moviepy==1.0.3
+numpy<2.0.0
+instagrapi==1.17.0
